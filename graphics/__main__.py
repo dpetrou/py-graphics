@@ -27,14 +27,16 @@ from collections import Counter
 
 def random_color():
     """Return an RGB triple.
-    
+
     We set a minimum intensity to ensure visibility on black.
     """
     min_color = 50
     max_color = 255
-    return (random.randrange(min_color, max_color),
-            random.randrange(min_color, max_color),
-            random.randrange(min_color, max_color))
+    return (
+        random.randrange(min_color, max_color),
+        random.randrange(min_color, max_color),
+        random.randrange(min_color, max_color),
+    )
 
 
 def combos(depth, num_flavors, icecream):
@@ -62,9 +64,7 @@ def unique_icecreams(num_scoops, num_flavors):
 
     fprints = set()
 
-    for icecream in combos(depth=num_scoops,
-                           num_flavors=num_flavors,
-                           icecream=[]):
+    for icecream in combos(depth=num_scoops, num_flavors=num_flavors, icecream=[]):
         num_total_combos += 1
         fprint = fprint_of_icecream(icecream)
         if fprint in fprints:
@@ -96,15 +96,14 @@ def num_rows_and_cols(num_icecreams, aspect_ratio):
     num_rows = int(num_rows)
     num_cols = int(num_cols)
     # Due to edge effects, increase the number of rows until we're good.
-    while (True):
+    while True:
         if num_rows * num_cols > num_icecreams:
             break
         num_rows += 1
     return (num_rows + 1, num_cols + 1)
 
 
-def create_icecreams(icecreams, num_scoops, flavors, num_rows, num_cols, width,
-                     height):
+def create_icecreams(icecreams, num_scoops, flavors, num_rows, num_cols, width, height):
     """Create all the icecreams."""
     num_icecreams = len(icecreams)
     box_width = width / num_cols
@@ -125,16 +124,15 @@ def create_icecreams(icecreams, num_scoops, flavors, num_rows, num_cols, width,
             y_center = row * box_height - (radius * num_scoops / 2)
 
             for flavor_index in icecreams[icecream_idx]:
-                circle = pyglet.shapes.Circle(x=x_center,
-                                              y=y_center,
-                                              radius=radius,
-                                              color=flavors[flavor_index])
+                circle = pyglet.shapes.Circle(
+                    x=x_center, y=y_center, radius=radius, color=flavors[flavor_index]
+                )
                 circle.opacity = 128
                 circle_scoops.append(circle)
                 y_center += radius
 
             icecream_idx += 1
-            if (icecream_idx == num_icecreams):
+            if icecream_idx == num_icecreams:
                 return circle_scoops
 
 
@@ -154,18 +152,16 @@ def main(argv):
         output_filename = args.output_filename
 
     if num_flavors < 1 or num_scoops < 1:
-        print(
-            "The number of flavors and number of scoops must be greater than 0"
-        )
+        print("The number of flavors and number of scoops must be greater than 0")
         return os.EX_USAGE
 
     # Materialize the generator into a list because need to know the total number
     # of icecreams to do layout.
-    icecreams = list(
-        unique_icecreams(num_scoops=num_scoops, num_flavors=num_flavors))
+    icecreams = list(unique_icecreams(num_scoops=num_scoops, num_flavors=num_flavors))
     num_icecreams = len(icecreams)
-    closed_form_num_icecreams = closed_form(num_scoops=num_scoops,
-                                            num_flavors=num_flavors)
+    closed_form_num_icecreams = closed_form(
+        num_scoops=num_scoops, num_flavors=num_flavors
+    )
     assert num_icecreams == closed_form_num_icecreams
 
     flavors = [random_color() for _ in range(num_flavors)]
@@ -175,26 +171,31 @@ def main(argv):
 
     aspect_ratio = window.width / window.height
     print(f"Aspect ratio: {aspect_ratio}")
-    (num_rows, num_cols) = num_rows_and_cols(num_icecreams=num_icecreams,
-                                             aspect_ratio=aspect_ratio)
+    (num_rows, num_cols) = num_rows_and_cols(
+        num_icecreams=num_icecreams, aspect_ratio=aspect_ratio
+    )
 
     print(f"num_rows={num_rows}, num_cols={num_cols}")
 
-    circle_scoops = create_icecreams(icecreams=icecreams,
-                                     num_scoops=num_scoops,
-                                     flavors=flavors,
-                                     num_rows=num_rows,
-                                     num_cols=num_cols,
-                                     width=window.width,
-                                     height=window.height)
+    circle_scoops = create_icecreams(
+        icecreams=icecreams,
+        num_scoops=num_scoops,
+        flavors=flavors,
+        num_rows=num_rows,
+        num_cols=num_cols,
+        width=window.width,
+        height=window.height,
+    )
 
     text = f"scoops={num_scoops}, flavors={num_flavors}, icecreams={num_icecreams}"
 
-    label = pyglet.text.Label(text,
-                              x=window.width // 2,
-                              y=window.height - 10,
-                              anchor_x='center',
-                              anchor_y='center')
+    label = pyglet.text.Label(
+        text,
+        x=window.width // 2,
+        y=window.height - 10,
+        anchor_x="center",
+        anchor_y="center",
+    )
     label.opacity = 200
 
     @window.event
@@ -209,12 +210,12 @@ def main(argv):
         #       https://github.com/pyglet/pyglet/issues/107
 
         if output_filename:
-            pyglet.image.get_buffer_manager().get_color_buffer().save(
-                'screenshot.png')
+            pyglet.image.get_buffer_manager().get_color_buffer().save("screenshot.png")
 
     pyglet.app.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     main(sys.argv[1:])
