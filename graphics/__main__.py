@@ -14,6 +14,8 @@ solution. The code cross-checks the number of final ice creams by
 the closed form solution for the standard problem of unordered sampling
 with replacement. (See the function closed_form() below, which answers
 problem 2 in the assignment.)
+
+Some images of different runs can be found here: https://photos.app.goo.gl/cXiCc1vQfuR5BzZS7
 """
 
 import pyglet
