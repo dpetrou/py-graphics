@@ -1,23 +1,26 @@
 """Homework assignment for kindergarten, Jun 10, 2022.
 
-Number of different icecreams that can be made from a variable
-number of flavors and scoops.
+Number of different ice creams that can be made from a variable
+number of flavors and scoops. See assignment at https://photos.app.goo.gl/4d9BX6WB5Yncy3bb6.
 
-A given icecream does not need to use all flavors. Two icecreams
-are considered the same if the flavors they have are the same,
-even if they have a different number of scoops for a given flavor.
+A given ice cream does not need to use all flavors. Two ice creams
+are considered different if the flavors they have are the same but
+they have a different number of scoops for a given flavor.
 
-Note: This definition of uniqueness, from the homework instructions,
-does not match that of "n choose k" from standard combinatorics.
-The code here, therefore, brute-forces the solution as a closed-form
-representation wasn't immediately clear. In any case, coroutines are
-used to reduce memory overhead.
+Note: The code here brute-forces the computation of the colors of each
+ice cream by computing all combinations and removing permutations. Coroutines are
+used to reduce memory overhead. Still, there is likely a more elegant
+solution. The code cross-checks the number of final ice creams by
+the closed form solution for the standard problem of unordered sampling
+with replacement. (See the function closed_form() below, which answers
+problem 2 in the assignment.)
 """
 
 import pyglet
 import argparse
 import random
 import math
+from collections import Counter
 
 
 def random_color():
@@ -45,6 +48,11 @@ def combos(depth, num_flavors, icecream):
         yield from combos(depth - 1, num_flavors, icecream_copy)
 
 
+def fprint_of_icecream(icecream):
+    """Compute the fingerprint of an icecream."""
+    return frozenset([(k, v) for k, v in Counter(icecream).items()])
+
+
 def unique_icecreams(num_scoops, num_flavors):
     """A generator yielding unique icecreams of a given number
     of scoops and flavors."""
@@ -56,13 +64,23 @@ def unique_icecreams(num_scoops, num_flavors):
                            num_flavors=num_flavors,
                            icecream=[]):
         num_total_combos += 1
-        fprint = frozenset(icecream)
+        fprint = fprint_of_icecream(icecream)
         if fprint in fprints:
             continue
         yield icecream
         fprints.add(fprint)
 
     print(f"num_total_combos={num_total_combos}")
+
+
+def n_choose_k(n, k):
+    numerator = math.factorial(n)
+    demoninator = math.factorial(n - k) * math.factorial(k)
+    return numerator / demoninator
+
+
+def closed_form(num_scoops, num_flavors):
+    return n_choose_k(n=num_flavors + num_scoops - 1, k=num_scoops)
 
 
 # TODO: Test when resizing window to aspect ratios both above and
@@ -124,10 +142,14 @@ def main(argv):
     p = argparse.ArgumentParser(description="Work with graphics")
     p.add_argument("-f", "--num_flavors", type=int, default=5)
     p.add_argument("-s", "--num_scoops", type=int, default=2)
+    p.add_argument("-o", "--output_filename", required=False)
     args = p.parse_args(args=argv)
 
     num_flavors = args.num_flavors
     num_scoops = args.num_scoops
+    output_filename = None
+    if args.output_filename:
+        output_filename = args.output_filename
 
     if num_flavors < 1 or num_scoops < 1:
         print(
@@ -140,7 +162,9 @@ def main(argv):
     icecreams = list(
         unique_icecreams(num_scoops=num_scoops, num_flavors=num_flavors))
     num_icecreams = len(icecreams)
-    print(f"num_icecreams={num_icecreams}")
+    closed_form_num_icecreams = closed_form(num_scoops=num_scoops,
+                                            num_flavors=num_flavors)
+    assert num_icecreams == closed_form_num_icecreams
 
     flavors = [random_color() for _ in range(num_flavors)]
     print(f"Flavors: {flavors}")
@@ -165,8 +189,10 @@ def main(argv):
     text = f"scoops={num_scoops}, flavors={num_flavors}, icecreams={num_icecreams}"
 
     label = pyglet.text.Label(text,
-                          x=window.width//2, y=window.height - 10,
-                          anchor_x='center', anchor_y='center')
+                              x=window.width // 2,
+                              y=window.height - 10,
+                              anchor_x='center',
+                              anchor_y='center')
     label.opacity = 200
 
     @window.event
@@ -175,6 +201,14 @@ def main(argv):
         for circle_scoop in circle_scoops:
             circle_scoop.draw()
         label.draw()
+        # TODO: Set background to black before saving.
+        #       https://stackoverflow.com/questions/42470333/how-to-change-the-color-of-a-pyglet-window
+        # TODO: Figure out why png output is twice as large as it should be.
+        #       https://github.com/pyglet/pyglet/issues/107
+
+        if output_filename:
+            pyglet.image.get_buffer_manager().get_color_buffer().save(
+                'screenshot.png')
 
     pyglet.app.run()
 
