@@ -37,6 +37,15 @@ def random_color():
             random.randrange(min_color, max_color))
 
 
+# NOTE: For a specific definition of same icecream, combos() and
+# unique_icecreams() could be collapsed to one method. E.g., for
+# the definition currently used, instead of generating all combinations,
+# an ordering of flavors could be used so that by construction an
+# exponentially fewer number (asymptotically) of ice creams are
+# created. We leave as is, with a separate combos() and filtering
+# stage, so that different definitions of different ice creams can be
+# tried. E.g., we can consider vanilla/vanilla/chocolate the same as
+# vanilla/chocolate/chocolate via a simple change to unique_icecreams().
 def combos(depth, num_flavors, icecream):
     """A generator yielding icecreams of `depth` scoops of all
     possible combinations of `num_flavors` flavors."""
